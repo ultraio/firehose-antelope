@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/ShinyTrinkets/overseer v0.3.0
 	github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
-	github.com/eoscanada/eos-go v0.10.3-0.20230403130542-2a31f6a393a2
+	github.com/eoscanada/eos-go v0.10.3-0.20230609180026-5d4ee54fe15e
 	github.com/lithammer/dedent v1.1.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/lytics/ordpool v0.0.0-20130426221837-8d833f097fe7
