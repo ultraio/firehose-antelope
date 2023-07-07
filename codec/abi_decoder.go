@@ -597,7 +597,13 @@ func (d *ABIDecoder) decodeAction(action *pbantelope.Action, globalSequence uint
 		return nil
 	}
 
-	zlog.Debug("successfully decoded action data", zap.String("action", action.SimpleName()), zap.String("json_data", string(jsonData)))
+	if action.SimpleName() == "eosio:delegatebw" {
+		zlog.Info("successfully decoded delegatebw data")
+		zlog.Info("delegatebw json", zap.String("json_data", string(jsonData)))
+		zlog.Info("delegatebw raw", zap.String("raw_data", hex.EncodeToString(action.RawData)))
+		zlog.Info("delegatebw abi", zap.Any("abi", abi))
+	}
+
 	action.JsonData = string(jsonData)
 
 	return nil
