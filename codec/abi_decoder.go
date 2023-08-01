@@ -601,7 +601,7 @@ func (d *ABIDecoder) decodeAction(action *pbantelope.Action, globalSequence uint
 		zlog.Info("successfully decoded delegatebw data")
 		zlog.Info("delegatebw json", zap.String("json_data", string(jsonData)))
 		zlog.Info("delegatebw raw", zap.String("raw_data", hex.EncodeToString(action.RawData)))
-		zlog.Info("delegatebw action definition", zap.Any("action_def", actionDef))
+		zlog.Info("delegatebw struct", zap.Any("struct", abi.StructForName(actionDef.Type)))
 	}
 
 	action.JsonData = string(jsonData)
