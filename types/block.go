@@ -16,7 +16,7 @@ func BlockFromProto(b *pbantelope.Block) (*bstream.Block, error) {
 
 	content, err := proto.Marshal(b)
 	if err != nil {
-		zlog.Info("failed to marshal to binary", zap.Error(err), zap.Any("block", b))
+		zlog.Error("failed to marshal to binary", zap.Error(err), zap.Any("block", b))
 		return nil, fmt.Errorf("unable to marshal to binary form: %s", err)
 	}
 
