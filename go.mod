@@ -243,3 +243,5 @@ require (
 )
 
 replace github.com/streamingfast/firehose-core => github.com/pinax-network/firehose-core v0.0.0-20231009123906-83e51d167ea7
+
+replace github.com/eoscanada/eos-go => github.com/pinax-network/eos-go v0.0.0-20231009141953-694a0a9f90f6
