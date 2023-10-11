@@ -273,6 +273,50 @@ func (c *ConsoleReader) ReadBlock() (out *bstream.Block, err error) {
 		return nil, fmt.Errorf("console reader read a nil *bstream.Block, this is invalid")
 	}
 
+	if v.Number == 144532479 {
+		c.logger.Error("block 144532479")
+
+		jsonBlock, err := json.Marshal(v)
+		if err != nil {
+			c.logger.Error("json.Marshal transaction error", zap.Error(err))
+		} else {
+			c.logger.Error("json.Marshal transaction successful, writing block to file")
+			file, err := os.Open("/var/lib/dfuse/144532479.json")
+			defer file.Close()
+
+			if err == nil {
+				_, err = file.Write(jsonBlock)
+				if err != nil {
+					c.logger.Error("failed to write block", zap.Error(err))
+				}
+			} else {
+				c.logger.Error("failed to create block file", zap.Error(err))
+			}
+		}
+
+		for _, trx := range v.Transactions() {
+			c.logger.Error("transaction", zap.Any("id", trx.Id), zap.Any("trx", trx))
+
+			_, err := json.Marshal(v)
+			if err != nil {
+				c.logger.Error("json.Marshal transaction error", zap.Error(err))
+			} else {
+				c.logger.Error("json.Marshal transaction successful")
+			}
+		}
+
+		for _, trx := range v.TransactionTraces() {
+			c.logger.Error("traces", zap.Any("id", trx.Id), zap.Any("trace", trx))
+
+			_, err := json.Marshal(v)
+			if err != nil {
+				c.logger.Error("json.Marshal trace error", zap.Error(err))
+			} else {
+				c.logger.Error("json.Marshal trace successful")
+			}
+		}
+	}
+
 	return c.blockEncoder.Encode(v)
 }
 
