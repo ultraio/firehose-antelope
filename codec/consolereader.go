@@ -23,6 +23,7 @@ import (
 	"github.com/pinax-network/firehose-antelope/codec/antelope"
 	firecore "github.com/streamingfast/firehose-core"
 	"github.com/streamingfast/logging"
+	"google.golang.org/protobuf/proto"
 	"io"
 	"os"
 	"strconv"
@@ -278,10 +279,10 @@ func (c *ConsoleReader) ReadBlock() (out *bstream.Block, err error) {
 
 		jsonBlock, err := json.Marshal(v)
 		if err != nil {
-			c.logger.Error("json.Marshal transaction error", zap.Error(err))
+			c.logger.Error("json.Marshal block error", zap.Error(err))
 		} else {
-			c.logger.Error("json.Marshal transaction successful, writing block to file")
-			file, err := os.Open("/var/lib/dfuse/144532479.json")
+			c.logger.Error("json.Marshal block successful, writing block to file")
+			file, err := os.Create("/var/lib/dfuse/144532479.json")
 			defer file.Close()
 
 			if err == nil {
@@ -294,14 +295,19 @@ func (c *ConsoleReader) ReadBlock() (out *bstream.Block, err error) {
 			}
 		}
 
+		_, err = proto.Marshal(v)
+		if err != nil {
+			c.logger.Error("proto.Marshal block error", zap.Error(err))
+		} else {
+			c.logger.Error("proto.Marshal successful!")
+		}
+
 		for _, trx := range v.Transactions() {
 			c.logger.Error("transaction", zap.Any("id", trx.Id), zap.Any("trx", trx))
 
 			_, err := json.Marshal(v)
 			if err != nil {
 				c.logger.Error("json.Marshal transaction error", zap.Error(err))
-			} else {
-				c.logger.Error("json.Marshal transaction successful")
 			}
 		}
 
@@ -311,8 +317,6 @@ func (c *ConsoleReader) ReadBlock() (out *bstream.Block, err error) {
 			_, err := json.Marshal(v)
 			if err != nil {
 				c.logger.Error("json.Marshal trace error", zap.Error(err))
-			} else {
-				c.logger.Error("json.Marshal trace successful")
 			}
 		}
 	}

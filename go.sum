@@ -673,8 +673,8 @@ github.com/pierrec/lz4 v2.6.1+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi
 github.com/pierrec/lz4/v4 v4.1.15/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pinax-network/eos-go v0.0.0-20231009141953-694a0a9f90f6 h1:Of662Y9q19JnP3AyBmABfTt0RQnJ5kqQuDqAng5i+Jg=
 github.com/pinax-network/eos-go v0.0.0-20231009141953-694a0a9f90f6/go.mod h1:L3avCf8OkDrjlUeNy9DdoV67TCmDNj2dSlc5Xp3DNNk=
-github.com/pinax-network/firehose-core v0.0.0-20231009123906-83e51d167ea7 h1:xJgTXdxfc+p90NePBaQuGrBsFKLRoH8I/1ZYxfAmf1A=
-github.com/pinax-network/firehose-core v0.0.0-20231009123906-83e51d167ea7/go.mod h1:c9j5iQfXdVt7mYOylMNptVZissTA7ctXMso3yWqBOlk=
+github.com/pinax-network/firehose-core v0.0.0-20231011130313-5959034db01b h1:cmFoQWEeurB+v6ztzULZyIb2RU8LpEPg+CU7JCNAIWE=
+github.com/pinax-network/firehose-core v0.0.0-20231011130313-5959034db01b/go.mod h1:uSapKxuFIPiOsQsZTCOBdOwAndqmG0yT8HELFu82Awg=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
