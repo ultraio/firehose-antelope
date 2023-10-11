@@ -25,6 +25,7 @@ import (
 	"github.com/streamingfast/bstream"
 	"go.uber.org/zap"
 	"math"
+	"strings"
 )
 
 var mostRecentActiveABI uint64 = math.MaxUint64
@@ -657,7 +658,7 @@ func (d *ABIDecoder) decodeDbOp(dbOp *pbantelope.DBOp, globalSequence uint64, tr
 			return nil
 		}
 
-		dbOp.OldDataJson = string(oldDataJson)
+		dbOp.OldDataJson = strings.ToValidUTF8(string(oldDataJson), "�")
 		zlog.Debug("decoded old data", zap.String("old_json_data", dbOp.OldDataJson))
 	}
 
@@ -689,7 +690,7 @@ func (d *ABIDecoder) decodeDbOp(dbOp *pbantelope.DBOp, globalSequence uint64, tr
 			return nil
 		}
 
-		dbOp.NewDataJson = string(newDataJson)
+		dbOp.NewDataJson = strings.ToValidUTF8(string(newDataJson), "�")
 		zlog.Debug("decoded new data", zap.String("new_json_data", dbOp.NewDataJson))
 	}
 
