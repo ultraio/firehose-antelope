@@ -1,0 +1,30 @@
+start:
+  args:
+    - abicodec
+    - apiproxy
+    - blockmeta
+    - booter
+    - dgraphql
+    - eosq
+    - eosws
+#   - merger
+#   - mindreader
+#   - relayer
+    - search-archive
+    - search-forkresolver
+    - search-indexer
+    - search-live
+    - search-router
+    - statedb
+    - tokenmeta
+    - trxdb-loader
+    - firehose
+    - accounthist
+  flags:
+#   mindreader-shutdown-delay: 5s
+    log-level-switcher-listen-addr: :1066
+    mindreader-grpc-listen-addr: :18010
+    relayer-grpc-listen-addr: :18014
+    merger-grpc-listen-addr: 18012
+    common-blockstream-addr: :18014
+    common-blocks-store-url: "file:///home/kurdt/ultra/firehose-antelope/firehose-data/storage/merged-blocks"
