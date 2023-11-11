@@ -27,4 +27,4 @@ start:
     relayer-grpc-listen-addr: :18014
     merger-grpc-listen-addr: 18012
     common-blockstream-addr: :18014
-    common-blocks-store-url: "file:///home/kurdt/ultra/firehose-antelope/firehose-data/storage/merged-blocks"
+    common-blocks-store-url: "file:///path-to-ultra-firehose-antelope/firehose-data/storage/merged-blocks"
