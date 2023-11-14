@@ -35,7 +35,7 @@ Releases are performed using [goreleaser](https://goreleaser.com/).
 ```
 5. To restart from genesis, you need to remove several files/directories.
 ```
-~/ultra/firehose-antelope$ rm -rf firehose-data/data/; rm -rf firehose-data/localdata/; rm -rf firehose-data/reader/config/protocol_features/; rm -rf firehose-data/reader/work/; rm -rf firehose-data/storage/; rm firehose-data/app.log.json
+~/ultra/firehose-antelope$ rm -rf firehose-data/localdata/ ; rm -rf firehose-data/reader/config/protocol_features/ ; rm -rf firehose-data/reader/data/ ; rm -rf firehose-data/reader/work/ ; rm -rf firehose-data/storage/ ; rm firehose-data/app.log.json
 ~/ultra/firehose-antelope$ rm -rf dfuse-data/
 ```
 
