@@ -21,11 +21,11 @@ import (
 	"github.com/eoscanada/eos-go"
 	"github.com/eoscanada/eos-go/system"
 	"github.com/lytics/ordpool"
+	"github.com/pinax-network/firehose-antelope/flags"
 	pbantelope "github.com/pinax-network/firehose-antelope/types/pb/sf/antelope/type/v1"
 	"github.com/streamingfast/bstream"
 	"go.uber.org/zap"
 	"math"
-	"strings"
 )
 
 var mostRecentActiveABI uint64 = math.MaxUint64
@@ -505,7 +505,7 @@ func (d *ABIDecoder) decodeActionTrace(actionTrace *pbantelope.ActionTrace, glob
 			return nil
 		}
 
-		actionTrace.JsonReturnValue = strings.ToValidUTF8(string(res), "�")
+		actionTrace.JsonReturnValue = string(res)
 	}
 
 	return nil
@@ -598,8 +598,16 @@ func (d *ABIDecoder) decodeAction(action *pbantelope.Action, globalSequence uint
 		return nil
 	}
 
-	action.JsonData = strings.ToValidUTF8(string(jsonData), "�")
-	zlog.Debug("successfully decoded action data", zap.String("action", action.SimpleName()), zap.String("json_data", string(jsonData)))
+	if flags.HasFeatureEnabled(flags.FeatureUltra) {
+		if action.Name == "inject" {
+			jsonData, err = DecodeTableInject(jsonData, abi)
+			if err != nil {
+				zlog.Debug("skipping the table inject with error: ", zap.Error(err))
+			}
+		}
+	}
+
+	action.JsonData = string(jsonData)
 
 	return nil
 }
@@ -607,7 +615,7 @@ func (d *ABIDecoder) decodeAction(action *pbantelope.Action, globalSequence uint
 func (d *ABIDecoder) decodeDbOp(dbOp *pbantelope.DBOp, globalSequence uint64, trxID string, blockNum uint64, localCache *ABICache) error {
 
 	// neither new_data nor old_data exists, we can skip this database operation
-	if len(dbOp.NewData) == 0 && len(dbOp.OldData) == 0 {
+	if len(dbOp.NewData) <= 0 && len(dbOp.OldData) <= 0 {
 		return nil
 	}
 
@@ -658,7 +666,7 @@ func (d *ABIDecoder) decodeDbOp(dbOp *pbantelope.DBOp, globalSequence uint64, tr
 			return nil
 		}
 
-		dbOp.OldDataJson = strings.ToValidUTF8(string(oldDataJson), "�")
+		dbOp.OldDataJson = string(oldDataJson)
 		zlog.Debug("decoded old data", zap.String("old_json_data", dbOp.OldDataJson))
 	}
 
@@ -690,7 +698,7 @@ func (d *ABIDecoder) decodeDbOp(dbOp *pbantelope.DBOp, globalSequence uint64, tr
 			return nil
 		}
 
-		dbOp.NewDataJson = strings.ToValidUTF8(string(newDataJson), "�")
+		dbOp.NewDataJson = string(newDataJson)
 		zlog.Debug("decoded new data", zap.String("new_json_data", dbOp.NewDataJson))
 	}
 
