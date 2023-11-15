@@ -4,9 +4,12 @@ start:
   - merger
   - reader-node
   - relayer
+  - substreams-tier1
+# - substreams-tier2
   flags:
     # Specifies the path to the binary
     reader-node-path: "nodeos"
     # Flags that will be added to the dummy chain process command
-    reader-node-arguments: ""
-    reader-node-config-dir: "{sf-data-dir}/config/jungle4"
+#   reader-node-arguments: ""
+    reader-node-arguments: "--config-dir=/path-to-ultra/firehose-antelope/firehose-data/reader/config --data-dir=/path-to-ultra/firehose-antelope/firehose-data/reader/data --genesis-json=/path-to-ultra/firehose-antelope/firehose-data/reader/config/genesis.json"
+#   reader-node-config-dir: "{sf-data-dir}/config/jungle4"

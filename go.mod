@@ -243,3 +243,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
+
+replace github.com/streamingfast/pbgo => github.com/ultraio/streamingfast-pbgo v0.0.6-0.20231110015437-38ab5a34817c
