@@ -1,0 +1,32 @@
+name: Docker Image CI
+run-name: Build image with firehose-antelope:'${{ github.event.inputs.firehose-antelope }}' and eosio:'${{ github.event.inputs.eosio }}'
+
+on:
+  # Only allows triggering through the Github Workflow UI
+  workflow_dispatch:
+    inputs:
+      firehose-antelope:
+        description: Tag from firehose-antelope
+        required: true
+        type: string
+      eosio:
+        description: Tag from eosio
+        required: false
+        type: string
+      overwrite:
+        description: Overwrite existed firehose-antelope image.
+        default: false
+        type: boolean
+
+env:
+  DOCKER_IMAGE: eu.gcr.io/dfuse-302310/firehose-antelope
+
+jobs:
+  build:
+    name: Build and Push Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set firehose-antelope tag
+        run: |
+          echo "FIREHOSE_TAG=${{ github.event.inputs.firehose-antelope }}" >> $GITHUB_ENV
