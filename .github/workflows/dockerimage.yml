@@ -30,3 +30,72 @@ jobs:
       - name: Set firehose-antelope tag
         run: |
           echo "FIREHOSE_TAG=${{ github.event.inputs.firehose-antelope }}" >> $GITHUB_ENV
+      
+      - name: Set nodeos version
+        if: ${{ github.event.inputs.eosio != 'null' }}
+        run: |
+          echo "EOSIO_TAG=${{ github.event.inputs.eosio }}" >> $GITHUB_ENV
+          echo "FIREHOSE_NODEOS_TAG=${{ github.event.inputs.firehose-antelope }}-nodeos${{ github.event.inputs.eosio }}" >> $GITHUB_ENV
+
+      # checkout based on firehose-antelope tag
+      - name: Checkout firehose-antelope
+        uses: actions/checkout@v3
+        with:
+          ref: "${{ env.FIREHOSE_TAG }}"
+
+      # check release commit
+      - name: Update Commit Hash
+        run: |
+          echo "RELEASE_COMMIT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      # Only download eosio if set
+      - name: Download EOSIO Debian package
+        if: ${{ github.event.inputs.eosio != 'null' }}
+        uses: Legion2/download-release-action@v2.1.0
+        with:
+          repository: ultraio/eosio
+          tag: '${{ github.event.inputs.eosio }}'
+          path: .
+          file:  eosio-${{ env.EOSIO_TAG }}.deb
+          token: '${{ secrets.BLOCKCHAIN_CI_SECRET }}'
+
+      # gcloud authorization
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCR_KEY }}'
+
+      - name: Setup gcloud cli
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: dfuse-302310
+
+      # docker gcloud config
+      - name: Docker config
+        run: |
+          gcloud auth configure-docker -q
+
+      # Check if firehose image is existed. Failed if not existed
+      - name: Check Firehose Image
+        id: firehose-check
+        continue-on-error: true
+        run: |
+          docker manifest inspect ${{ env.DOCKER_IMAGE }}:${{ env.FIREHOSE_TAG }}
+
+      # Only build firehose-antelope image if not existed or overwrite is set
+      - name: Build firehose-antelope Image Without Nodeos
+        if: ${{  (steps.firehose-check.outcome == 'failure' || github.event.inputs.overwrite == 'true') }}
+        run: |
+          docker build -f firehose.Dockerfile . -t ${{ env.DOCKER_IMAGE }}:${{ env.FIREHOSE_TAG }} \
+                --build-arg VERSION=${{ env.FIREHOSE_TAG }} \
+                --build-arg COMMIT=${{ env.RELEASE_COMMIT }}
+          docker push ${{ env.DOCKER_IMAGE }}:${{ env.FIREHOSE_TAG }}
+      
+      # Only build firehose-antelope with nodeos if eosio is set and firehose-antelope image are exist
+      - name: Build firehose-antelope Image With Nodeos
+        if: ${{ github.event.inputs.eosio != 'null' }}
+        run: |
+          docker build -f nodeos.Dockerfile . -t ${{ env.DOCKER_IMAGE }}:${{ env.FIREHOSE_NODEOS_TAG }} \
+                --build-arg FIREHOSE_IMAGE=${{ env.DOCKER_IMAGE }}:${{ env.FIREHOSE_TAG }} \
+                --build-arg DEB_PKG=eosio-${{ env.EOSIO_TAG }}.deb
+          docker push ${{ env.DOCKER_IMAGE }}:${{ env.FIREHOSE_NODEOS_TAG }}
