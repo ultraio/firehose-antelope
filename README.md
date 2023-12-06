@@ -14,7 +14,7 @@ The Bash script runs in dry-mode by default, so you can check first that everyth
 
 Releases are performed using [goreleaser](https://goreleaser.com/).
 
-## To run `fireantelope` and `dfuseoes`
+## To run `fireantelope` and `dfuseeos`
 
 1. Start `nodeos`.
 ```
@@ -37,6 +37,41 @@ Releases are performed using [goreleaser](https://goreleaser.com/).
 ```
 ~/ultra/firehose-antelope$ rm -rf firehose-data/localdata/ ; rm -rf firehose-data/reader/config/protocol_features/ ; rm -rf firehose-data/reader/data/ ; rm -rf firehose-data/reader/work/ ; rm -rf firehose-data/storage/ ; rm firehose-data/app.log.json
 ~/ultra/firehose-antelope$ rm -rf dfuse-data/
+```
+
+## To run `fireantelope` docker image and `dfuseeos`
+
+1. Update `firehose-data/reader/config/config.ini`
+
+- Change `p2p-peer-address = 127.0.0.1:9876` to `p2p-peer-address = host.docker.internal:9876`
+
+2. Start `nodeos` on host machine
+```
+ultratest -s -n -D
+```
+
+3. Start `firehose-antelope` nodeos image
+
+- Note: change docker image tag if needed. Change `$ULTRA_DIR` to point to your ultra directory.
+```sh
+docker run --rm -it -v $ULTRA_DIR/firehose-antelope:/tmp -p 1066:1066 -p 10010:10010 -p 10012:10012 -p 10014:10014 eu.gcr.io/dfuse-302310/firehose-antelope:ci-test-nodeos3.2.4-2.0.3 bash
+```
+
+4. Start `fireantelope` inside the container
+```
+cd /tmp
+./bin/run_local_test.sh docker
+```
+
+5. Modify `common-blocks-store-url` appropriately in `devel/standard/dfuse.yaml` and start `dfuseeos` from another console.
+```
+dfuseeos start -c ./devel/standard/dfuse.yaml
+```
+- Open block explorer at [localhost:8080](http:://localhost:8080) to validate.
+
+6. (Optional) Run `SubstreamsCLI` from yet another console.
+```
+~/pinax-network/substreams/eosio.token$ substreams run -e localhost:10016 substreams.yaml map_transfers --start-block 2 --stop-block 20 --plaintext
 ```
 
 # Deployment
