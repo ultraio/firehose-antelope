@@ -1,0 +1,13 @@
+start:
+  args:
+  - firehose
+  - merger
+  - reader-node
+  - relayer
+  - substreams-tier1
+# - substreams-tier2
+  flags:
+    # Specifies the path to the binary
+    reader-node-path: "nodeos"
+    # Flags that will be added to the dummy chain process command
+    reader-node-arguments: "--config-dir=/tmp/firehose-data/reader/config --data-dir=/tmp/firehose-data/reader/data --genesis-json=/tmp/firehose-data/reader/config/genesis.json"
