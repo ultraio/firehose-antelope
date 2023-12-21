@@ -27,9 +27,12 @@ RUN mkdir /tmp/wasmer-install && cd /tmp/wasmer-install && \
     mv lib/libwasmer.a lib/libwasmer.so /usr/lib/ && cd / && rm -rf /tmp/wasmer-install
 
 COPY --from=firehose /work/fireantelope /app/fireantelope
+COPY --from=firehose /work/tools/fireantelope/motd /etc/motd
 COPY --from=firehose /work/tools/fireantelope/motd_generic /etc/
 COPY --from=firehose /work/tools/fireantelope/motd_node_manager /etc/
 COPY --from=firehose /work/tools/fireantelope/99-firehose.sh /etc/profile.d/
 COPY --from=firehose /work/tools/fireantelope/scripts/* /usr/local/bin
+
+RUN echo cat /etc/motd >> /root/.bashrc
 
 ENV PATH=$PATH:/app
