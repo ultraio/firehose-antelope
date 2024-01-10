@@ -26,6 +26,8 @@ RUN mkdir /tmp/wasmer-install && cd /tmp/wasmer-install && \
     curl -L https://github.com/wasmerio/wasmer/releases/download/2.3.0/wasmer-linux-amd64.tar.gz | tar xzf - && \
     mv lib/libwasmer.a lib/libwasmer.so /usr/lib/ && cd / && rm -rf /tmp/wasmer-install
 
+RUN mkdir -p /app/ && curl -Lo /app/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.12/grpc_health_probe-linux-amd64 && chmod +x /app/grpc_health_probe
+
 COPY --from=firehose /work/fireantelope /app/fireantelope
 COPY --from=firehose /work/tools/fireantelope/motd /etc/motd
 COPY --from=firehose /work/tools/fireantelope/motd_generic /etc/
