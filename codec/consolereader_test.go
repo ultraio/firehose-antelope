@@ -18,16 +18,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/andreyvit/diff"
-	antelope_v3_1 "github.com/pinax-network/firehose-antelope/codec/antelope/v3.1"
-	"github.com/pinax-network/firehose-antelope/types"
-	pbantelope "github.com/pinax-network/firehose-antelope/types/pb/sf/antelope/type/v1"
-	firecore "github.com/streamingfast/firehose-core"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"io"
 	_ "net/http/pprof"
 	"os"
@@ -36,57 +26,33 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/andreyvit/diff"
+	antelope_v3_1 "github.com/pinax-network/firehose-antelope/codec/antelope/v3.1"
+	pbantelope "github.com/pinax-network/firehose-antelope/types/pb/sf/antelope/type/v1"
+	firecore "github.com/streamingfast/firehose-core"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// todo delete legacy benchmark replaced with console_reader_bench_test.go
-//func TestConsoleReaderPerformances(t *testing.T) {
-//	dmlogBenchmarkFile := os.Getenv("PERF_DMLOG_BENCHMARK_FILE")
-//	if dmlogBenchmarkFile == "" || !fileExists(dmlogBenchmarkFile) {
-//		t.Skipf("Environment variable 'PERF_DMLOG_BENCHMARK_FILE' not set or value %q is not an existing file", dmlogBenchmarkFile)
-//		return
-//	}
-//
-//	go func() {
-//		if err := http.ListenAndServe("localhost:6060", nil); err != nil {
-//			zlogTest.Info("listening localhost:6060", zap.Error(err))
-//		}
-//	}()
-//
-//	fl, err := os.Open(dmlogBenchmarkFile)
-//	require.NoError(t, err)
-//
-//	r, err := NewConsoleReader(fl)
-//	require.NoError(t, err)
-//	defer r.Close()
-//
-//	count := 1999
-//
-//	t0 := time.Now()
-//
-//	for i := 0; i < count; i++ {
-//		blki, err := r.Read()
-//		require.NoError(t, err)
-//
-//		blk := blki.(*pbantelope.Block)
-//		fmt.Fprintln(os.Stderr, "Processing block", blk.Num())
-//	}
-//
-//	d1 := time.Since(t0)
-//	perSec := float64(count) / (float64(d1) / float64(time.Second))
-//	fmt.Printf("%d blocks in %s (%f blocks/sec)", count, d1, perSec)
-//}
-
+// to generate and validate deep-mind log file for this, test use https://github.com/pinax-network/leap-dmlog-gen
+// to generate golden file for a new dmlog file, add a test to tests slice and run this test as `GOLDEN_UPDATE=true go test ./codec -v -run TestParseFromFile`
 func TestParseFromFile(t *testing.T) {
 
 	tests := []struct {
 		name         string
 		deepMindFile string
-		includeBlock func(block *pbantelope.Block) bool
+		strictMode   bool
+		// includeBlock func(block *pbantelope.Block) bool
 		// readerOptions []ConsoleReaderOption
 	}{
-		// {"full", "testdata/deep-mind.dmlog", nil /*nil*/},
-		// {"full-3.1.x", "testdata/deep-mind-3.1.x.dmlog", nil /*nil*/},
-		{"dmlog", "testdata/dm.log", nil /*nil*/},
+		// {"full", "testdata/deep-mind.dmlog", /*nil nil*/},
+		{"full-3.1.x", "testdata/deep-mind-3.1.x.dmlog", false /*nil, nil*/},
+		{"full-5.0.x", "testdata/deep-mind-5.0.x.dmlog", false /*nil, nil*/},
+		{"dmlog", "testdata/dm.log", true /*nil, nil*/},
 		// {"max-console-log", "testdata/deep-mind.dmlog", blockWithConsole /*[]ConsoleReaderOption{LimitConsoleLength(10)}*/},
 	}
 
@@ -99,7 +65,7 @@ func TestParseFromFile(t *testing.T) {
 			//	}
 			//}()
 
-			cr := testFileConsoleReader(t, test.deepMindFile)
+			cr := testFileConsoleReader(t, test.deepMindFile, test.strictMode)
 
 			var reader ObjectReader = func() (interface{}, error) {
 				out, err := cr.ReadBlock()
@@ -107,7 +73,13 @@ func TestParseFromFile(t *testing.T) {
 					return nil, err
 				}
 
-				return out.ToProtocol().(*pbantelope.Block), nil
+				pbBlock := &pbantelope.Block{}
+				err = out.Payload.UnmarshalTo(pbBlock)
+				if err != nil {
+					return nil, err
+				}
+
+				return pbBlock, nil
 			}
 
 			buf := &bytes.Buffer{}
@@ -148,7 +120,12 @@ func TestParseFromFile(t *testing.T) {
 
 			goldenFile := test.deepMindFile + ".golden.json"
 			if os.Getenv("GOLDEN_UPDATE") == "true" {
-				err := os.WriteFile(goldenFile, buf.Bytes(), os.ModePerm)
+				_, err := os.Stat(goldenFile)
+				if err == nil {
+					t.Logf("Golden file already exists, skipping: %s", goldenFile)
+					return
+				}
+				err = os.WriteFile(goldenFile, buf.Bytes(), os.ModePerm)
 				require.NoError(t, err)
 			}
 
@@ -180,20 +157,17 @@ func unifiedDiff(t *testing.T, cnt1, cnt2 []byte) string {
 func TestGeneratePBBlocks(t *testing.T) {
 	t.Skip("generate only when deep-mind-3.1.x.dmlog changes")
 
-	cr := testFileConsoleReader(t, "testdata/deep-mind-3.1.x.dmlog")
+	cr := testFileConsoleReader(t, "testdata/deep-mind-3.1.x.dmlog", false)
 
 	for {
 		out, err := cr.ReadBlock()
 		if out != nil {
-			block := out.ToProtocol().(*pbantelope.Block)
 
-			bstreamBlock, err := types.BlockFromProto(block)
+			pbBlock := &pbantelope.Block{}
+			err = out.Payload.UnmarshalTo(pbBlock)
 			require.NoError(t, err)
 
-			pbBlock, err := bstreamBlock.ToProto()
-			require.NoError(t, err)
-
-			outputFile, err := os.Create(fmt.Sprintf("testdata/pbblocks/battlefield-block.%d.pb", block.Number))
+			outputFile, err := os.Create(fmt.Sprintf("testdata/pbblocks/battlefield-block.%d.pb", pbBlock.Number))
 			require.NoError(t, err)
 
 			pbBlockBytes, err := proto.Marshal(pbBlock)
@@ -213,33 +187,43 @@ func TestGeneratePBBlocks(t *testing.T) {
 	}
 }
 
-func testFileConsoleReader(t *testing.T, filename string) *ConsoleReader {
+func testFileConsoleReader(t *testing.T, filename string, strictMode bool) *ConsoleReader {
 	t.Helper()
 
 	fl, err := os.Open(filename)
 	require.NoError(t, err)
 
+	abiDecoder := newABIDecoder()
+	if strictMode {
+		abiDecoder = newABIDecoderInStrictMode()
+	}
+
 	// todo use this if you want A LOT of logging
 	// cr := testReaderConsoleReader(t.Helper, make(chan string, 10000), func() { fl.Close() }, zaptest.NewLogger(t))
-	cr := testReaderConsoleReader(t.Helper, make(chan string, 10000), func() { fl.Close() }, nil)
+	cr := testReaderConsoleReader(t.Helper, make(chan string, 10000), func() { fl.Close() }, nil, abiDecoder)
 
-	go cr.ProcessData(fl)
+	go func() {
+		err := cr.ProcessData(fl)
+		if !errors.Is(err, io.EOF) {
+			require.NoError(t, err)
+		}
+	}()
 
 	return cr
 }
 
-func testReaderConsoleReader(helperFunc func(), lines chan string, closer func(), logger *zap.Logger) *ConsoleReader {
+func testReaderConsoleReader(helperFunc func(), lines chan string, closer func(), logger *zap.Logger, abiDecoder *ABIDecoder) *ConsoleReader {
 
 	l := &ConsoleReader{
 		lines:        lines,
-		blockEncoder: firecore.NewGenericBlockEncoder(1),
+		blockEncoder: firecore.NewBlockEncoder(),
 		close:        closer,
 		ctx: &parseCtx{
 			logger:       zlogTest,
 			globalStats:  newConsoleReaderStats(),
 			currentBlock: &pbantelope.Block{},
 			currentTrace: &pbantelope.TransactionTrace{},
-			abiDecoder:   newABIDecoderInStrictMode(),
+			abiDecoder:   abiDecoder,
 		},
 		logger: zlogTest,
 	}
@@ -688,40 +672,11 @@ func mustTimeParse(input string) time.Time {
 	return value
 }
 
-func reader(in string) io.Reader {
-	return bytes.NewReader([]byte(in))
-}
-
 func protoJSONMarshalIndent(t *testing.T, message proto.Message) string {
 	value, err := MarshalIndentToString(message, "  ")
 	require.NoError(t, err)
 
 	return value
-}
-
-func fileExists(path string) bool {
-	info, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false
-	}
-
-	if err != nil {
-		return false
-	}
-
-	return !info.IsDir()
-}
-
-func blockWithConsole(block *pbantelope.Block) bool {
-	for _, trxTrace := range block.TransactionTraces() {
-		for _, actTrace := range trxTrace.ActionTraces {
-			if len(actTrace.Console) > 0 {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 func newParseCtx() *parseCtx {
