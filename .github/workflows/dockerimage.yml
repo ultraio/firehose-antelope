@@ -19,7 +19,7 @@ on:
         type: boolean
 
 env:
-  DOCKER_IMAGE: eu.gcr.io/dfuse-302310/firehose-antelope
+  DOCKER_IMAGE: quay.io/ultra.io/firehose-antelope
 
 jobs:
   build:
@@ -39,7 +39,7 @@ jobs:
 
       # checkout based on firehose-antelope tag
       - name: Checkout firehose-antelope
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: "${{ env.FIREHOSE_TAG }}"
 
@@ -58,22 +58,14 @@ jobs:
           path: .
           file:  eosio-${{ env.EOSIO_TAG }}.deb
           token: '${{ secrets.BLOCKCHAIN_CI_SECRET }}'
-
-      # gcloud authorization
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v1'
+      
+      # Login to quay.io
+      - name: Login to quay.io
+        uses: docker/login-action@v3
         with:
-          credentials_json: '${{ secrets.GCR_KEY }}'
-
-      - name: Setup gcloud cli
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: dfuse-302310
-
-      # docker gcloud config
-      - name: Docker config
-        run: |
-          gcloud auth configure-docker -q
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
 
       # Check if firehose image is existed. Failed if not existed
       - name: Check Firehose Image
