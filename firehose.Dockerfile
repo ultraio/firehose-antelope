@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.2
 
-FROM golang:1.21 as firehose
+FROM golang:1.22 as firehose
 ARG COMMIT
 ARG VERSION
 RUN mkdir -p /work
