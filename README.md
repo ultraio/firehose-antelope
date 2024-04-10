@@ -1,18 +1,57 @@
 # Firehose on Antelope
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-This is Streamingfast's [Firehose](https://firehose.streamingfast.io) implementation adapted for Antelope chains, 
-effectively enabling [Substreams](https://substreams.streamingfast.io) on all Antelope chains. 
+This is the Antelope chain-specific implementation part of firehose-core and enables both
+[Firehose](https://firehose.streamingfast.io/introduction/firehose-overview)
+and [Substreams](https://substreams.streamingfast.io) on Antelope chains with native blocks.
 
-# Usage
+## For Developers
 
-## Release
+To get started with Firehose and Substreams, you need to sign up on https://app.pinax.network to get yourself an api
+key. You'll also find quickstarts there to get you started and all of our available endpoints (we currently provide both
+Firehose and Substreams endpoints for EOS, WAX and Telos, as well as different testnets).
 
-Use the `./bin/release.sh` Bash script to perform a new release. It will ask you questions
-as well as driving all the required commands, performing the necessary operation automatically.
-The Bash script runs in dry-mode by default, so you can check first that everything is all right.
+For connecting to **Firehose** endpoints, you'll need the Protobufs which are published on
+[buf.build](https://buf.build/pinax/firehose-antelope/docs/main). Some Golang example code on how to set up a Firehose
+client can be found [here](https://github.com/pinax-network/firehose-examples-go).
 
-Releases are performed using [goreleaser](https://goreleaser.com/).
+To **consume** Antelope Substreams, please have a look at the
+[documentation](https://substreams.streamingfast.io/documentation/consume). You can also find Substreams to deploy in
+our Substreams repository [here](https://github.com/pinax-network/substreams) and on
+[substreams.dev](https://substreams.dev).
+
+To **develop** Antelope Substreams, have a look at
+the [documentation](https://substreams.streamingfast.io/documentation/develop) here and at the Pinax SDK for Antelope
+Substreams which can be found [here](https://github.com/pinax-network/substreams-antelope).
+
+A collection of resources around Substreams can also be found
+on [Awesome Substreams](https://github.com/pinax-network/awesome-substreams).
+
+### Subgraphs
+
+Although The Graph does not officially support any Antelope chains yet, it's possible to write Subgraphs based on
+Substreams and set up your own Graph node. You can find an
+example [here](https://github.com/pinax-network/eosio.token-subgraph) on how to achieve this.
+
+## For Operators
+
+Please have a look at the documentation [here](https://firehose.streamingfast.io) on how to set up your own Firehose &
+Substreams stack. Note that indexing larger Antelope chains such as EOS or WAX requires parallel processing of the chain
+and a lot of resources to have the indexing done in a reasonable time frame.
+
+### EOS EVM
+
+This implementation provides native Antelope blocks, including all Antelope specific block data. In case you are looking
+for operating Firehose & Substreams for EOS EVM, please have a look at
+the [firehose-ethereum](https://github.com/streamingfast/firehose-ethereum) repository; it provides a generic evm poller
+to poll the EVM blocks from an RPC node.
+
+## Support
+
+In case of any questions around the Pinax endpoints or technology, feel free to hit us on
+our [Discord server](https://discord.gg/pinax). For more generic questions around Substreams, you might also find the
+[Streamingfast Discord server](https://discord.gg/jZwqxJAvRs) useful.
 
 ## To run `fireantelope` and `dfuseeos`
 
@@ -74,7 +113,7 @@ dfuseeos start -c ./devel/standard/dfuse.yaml
 
 - If not work try to update `firehose-data/reader/config/config.ini`, change `p2p-peer-address = 127.0.0.1:9876` to `p2p-peer-address = host.docker.internal:9876`
 
-# Deployment
+## Deployment
 
 Todo: describe deployments for firehose and substreams
 

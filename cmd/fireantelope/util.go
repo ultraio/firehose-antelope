@@ -3,10 +3,14 @@ package main
 import (
 	"fmt"
 	pbantelope "github.com/pinax-network/firehose-antelope/types/pb/sf/antelope/type/v1"
+	pbbstream "github.com/streamingfast/bstream/pb/sf/bstream/v1"
+	firecore "github.com/streamingfast/firehose-core"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"strconv"
 	"time"
 )
+
+var fixedTimestamp = timestamppb.New(time.Date(2006, 01, 02, 15, 04, 05, 0, time.UTC))
 
 func mustParseUint64(in string) uint64 {
 	out, err := strconv.ParseUint(in, 10, 64)
@@ -17,9 +21,13 @@ func mustParseUint64(in string) uint64 {
 	return out
 }
 
-func sanitizeBlockForCompare(block *pbantelope.Block) *pbantelope.Block {
+func sanitizeBlockForCompare(block *pbbstream.Block) *pbbstream.Block {
 
-	fixedTimestamp := timestamppb.New(time.Now())
+	var antelopeBlock pbantelope.Block
+	err := block.Payload.UnmarshalTo(&antelopeBlock)
+	if err != nil {
+		panic(fmt.Errorf("unable to unmarshal block payload into Antelope block: %w", err))
+	}
 
 	var sanitizeContext func(logContext *pbantelope.Exception_LogContext)
 	sanitizeContext = func(logContext *pbantelope.Exception_LogContext) {
@@ -50,11 +58,11 @@ func sanitizeBlockForCompare(block *pbantelope.Block) *pbantelope.Block {
 		}
 	}
 
-	for _, rlimitOp := range block.RlimitOps {
+	for _, rlimitOp := range antelopeBlock.RlimitOps {
 		sanitizeRLimitOp(rlimitOp)
 	}
 
-	for _, trxTrace := range block.UnfilteredTransactionTraces {
+	for _, trxTrace := range antelopeBlock.UnfilteredTransactionTraces {
 		trxTrace.Elapsed = 888
 		sanitizeException(trxTrace.Exception)
 
@@ -78,12 +86,19 @@ func sanitizeBlockForCompare(block *pbantelope.Block) *pbantelope.Block {
 		}
 
 		if trxTrace.FailedDtrxTrace != nil {
+			trxTrace.FailedDtrxTrace.Elapsed = 101010
 			sanitizeException(trxTrace.FailedDtrxTrace.Exception)
 			for _, actTrace := range trxTrace.FailedDtrxTrace.ActionTraces {
+				actTrace.Elapsed = 111111
 				sanitizeException(actTrace.Exception)
 			}
 		}
 	}
 
-	return block
+	res, err := firecore.EncodeBlock(&antelopeBlock)
+	if err != nil {
+		panic(fmt.Errorf("failed to encode Antelope block: %w", err))
+	}
+
+	return res
 }
