@@ -4,7 +4,7 @@ ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 BIN=fireantelope
 CONFIG=./devel/standard/standard.yaml
 
-rm -rf $ROOT/firehose-data/local-data
+rm -rf $ROOT/firehose-data/localdata
 rm -rf $ROOT/firehose-data/storage
 rm -rf $ROOT/firehose-data/app.log.json
 rm -rf $ROOT/firehose-data/reader/data
